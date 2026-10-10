@@ -91,6 +91,23 @@ helm upgrade --install marathoon-runner oci://ghcr.io/lordinaire/charts/marathoo
 
 Job containers run with all capabilities dropped and `no-new-privileges` by default.
 
+## Verify the agent downloads
+
+The installers on `dl.marathoon.fr` come with a `SHA256SUMS` file signed by the Marathoon release
+key, [`marathoon-agent-release.asc`](marathoon-agent-release.asc) in this repository:
+
+```
+Marathoon agent releases <security@marathoon.fr>
+B4E7 599A 27EC 0CDA 2686  F84D 095E D59D 01DC 60F6
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Lordinaire/marathoon-runner/main/marathoon-agent-release.asc | gpg --import
+curl -fsSLO https://dl.marathoon.fr/latest/SHA256SUMS -O https://dl.marathoon.fr/latest/SHA256SUMS.asc
+gpg --verify SHA256SUMS.asc SHA256SUMS          # "Good signature", fingerprint as above
+sha256sum -c SHA256SUMS --ignore-missing        # in the folder holding the downloaded files
+```
+
 ## Troubleshooting
 
 | Symptom | Fix |
