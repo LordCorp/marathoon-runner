@@ -1,6 +1,6 @@
 # Marathoon Connected Runner
 
-Run your [Marathoon](https://marathoon.io) jobs on your own infrastructure: a Docker host or a
+Run your [Marathoon](https://marathoon.fr) jobs on your own infrastructure: a Docker host or a
 Kubernetes cluster. The runner only makes **outbound HTTPS** calls (to the Marathoon API and to
 your image registries) and needs no inbound port. Compute that runs on your runner is not billed
 in Marathoon credits.
