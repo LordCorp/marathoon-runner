@@ -5,8 +5,8 @@ Kubernetes cluster. The runner only makes **outbound HTTPS** calls (to the Marat
 your image registries) and needs no inbound port. Compute that runs on your runner is not billed
 in Marathoon credits.
 
-- Image: `ghcr.io/lordinaire/marathoon-runner` (linux/amd64, linux/arm64)
-- Helm chart: `oci://ghcr.io/lordinaire/charts/marathoon-runner`
+- Image: `ghcr.io/lordcorp/marathoon-runner` (linux/amd64, linux/arm64)
+- Helm chart: `oci://ghcr.io/lordcorp/charts/marathoon-runner`
 
 ## 1. Get an enrollment token
 
@@ -34,7 +34,7 @@ docker run -d --name marathoon-runner --restart unless-stopped \
   -e MARATHOON_API_URL='<api url shown by the wizard>' \
   -e MARATHOON_AGENT_NAME='build-box-01' \
   -e MARATHOON_ENROLL_TOKEN='mre_…' \
-  ghcr.io/lordinaire/marathoon-runner:latest
+  ghcr.io/lordcorp/marathoon-runner:latest
 ```
 
 The token is exchanged once for runner credentials, stored in the `marathoon-runner-config`
@@ -48,7 +48,7 @@ volume: keep that volume when you recreate the container.
 #   export DOCKER_GID=$(stat -c %g /var/run/docker.sock)
 services:
   marathoon-runner:
-    image: ghcr.io/lordinaire/marathoon-runner:latest
+    image: ghcr.io/lordcorp/marathoon-runner:latest
     restart: unless-stopped
     group_add:
       - "${DOCKER_GID}"
@@ -70,7 +70,7 @@ Jobs run as Kubernetes Jobs in your cluster: no Docker socket, no privileged pod
 volume.
 
 ```bash
-helm upgrade --install marathoon-runner oci://ghcr.io/lordinaire/charts/marathoon-runner \
+helm upgrade --install marathoon-runner oci://ghcr.io/lordcorp/charts/marathoon-runner \
   --namespace marathoon --create-namespace \
   --set-string marathoon.apiUrl='<api url shown by the wizard>' \
   --set-string marathoon.enrollToken='mre_…'
@@ -102,7 +102,7 @@ B4E7 599A 27EC 0CDA 2686  F84D 095E D59D 01DC 60F6
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Lordinaire/marathoon-runner/main/marathoon-agent-release.asc | gpg --import
+curl -fsSL https://raw.githubusercontent.com/LordCorp/marathoon-runner/main/marathoon-agent-release.asc | gpg --import
 curl -fsSLO https://dl.marathoon.fr/latest/SHA256SUMS -O https://dl.marathoon.fr/latest/SHA256SUMS.asc
 gpg --verify SHA256SUMS.asc SHA256SUMS          # "Good signature", fingerprint as above
 sha256sum -c SHA256SUMS --ignore-missing        # in the folder holding the downloaded files
