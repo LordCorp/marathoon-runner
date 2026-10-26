@@ -64,6 +64,26 @@ volumes:
   marathoon-runner-config:
 ```
 
+### Docker Swarm
+
+One runner task per worker node labelled `marathoon.runner=true`, all under one identity kept in a
+Swarm secret. Each node runs jobs on its own Docker and takes as many as it can hold.
+
+```bash
+# Once, on a manager: the API key goes straight into the secret (never printed, never on disk)
+docker run --rm --group-add "$(stat -c %g /var/run/docker.sock)" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  ghcr.io/lordcorp/marathoon-runner:latest enroll \
+  --api-url '<api url shown by the wizard>' --token 'mre_…' \
+  --swarm-secret marathoon-runner-credentials
+# Then deploy the stack file shown by the wizard (Docker Swarm tab)
+docker stack deploy -c marathoon-runner.stack.yml marathoon
+```
+
+The stack runs read-only, without capabilities, on workers only, with the secret mounted `0400`.
+Draining a node lets running jobs finish (10 minutes). Revoking the machine in the web app stops
+every node.
+
 ### Kubernetes (Helm)
 
 Jobs run as Kubernetes Jobs in your cluster: no Docker socket, no privileged pod, no persistent
@@ -83,6 +103,10 @@ helm upgrade --install marathoon-runner oci://ghcr.io/lordcorp/charts/marathoon-
 | `MARATHOON_API_URL` | Marathoon API origin (without `/api/v1`) |
 | `MARATHOON_ENROLL_TOKEN` | One-time enrollment token (never stored) |
 | `MARATHOON_AGENT_NAME` | Name shown in the web app |
+| `MARATHOON_RUNNER_SHUTDOWN_GRACE_SECONDS` | On stop, how long running jobs may finish before being cancelled (default 0) |
+| `MARATHOON_CREDENTIALS_FILE` | Credentials file (Swarm secret); authoritative, never copied to disk |
+| `MARATHOON_INSTANCE_ID` | Instance name when several processes share one identity (Swarm: `{{.Node.Hostname}}`) |
+| `MARATHOON_RUNNER_MAX_CONCURRENCY` | Jobs run in parallel: `auto` (default) or a fixed number — see below |
 | `MARATHOON_RUNNER_CPUS` / `MARATHOON_RUNNER_MEMORY_MB` | CPU (cores) and memory (MiB) ceilings for job containers; `0` = unlimited |
 | `MARATHOON_RUNNER_NETWORK_MODE` | Job container network: `bridge` (default) or `none` |
 | `MARATHOON_RUNNER_ALLOWED_REGISTRIES` | Comma-separated registries (or `registry/namespace` prefixes) jobs may pull from; empty = any |
@@ -90,6 +114,20 @@ helm upgrade --install marathoon-runner oci://ghcr.io/lordcorp/charts/marathoon-
 | `DOCKER_HOST` | Docker endpoint, if not the local socket |
 
 Job containers run with all capabilities dropped and `no-new-privileges` by default.
+
+### Parallel jobs
+
+The runner executes several jobs at once. With `auto` it sizes that from where it runs, and
+re-checks every minute:
+
+- **Docker / Docker Desktop** — the daemon's CPUs and memory divided by one job's share
+  (`MARATHOON_RUNNER_CPUS` / `MARATHOON_RUNNER_MEMORY_MB`, else 1 CPU / 1 GiB), at least 1.
+- **Docker Swarm** — the same, per node: the stack above runs one runner task per node. A node set
+  to `drain` or `pause` takes no new job.
+- **Kubernetes** — what the namespace's ResourceQuotas still admit at the job pod's resources,
+  bounded by the schedulable nodes when the chart's `rbac.readNodes` is on; 4 otherwise.
+
+Automatic sizing stays at 16 or below; a fixed number may go higher.
 
 ## Verify the agent downloads
 
