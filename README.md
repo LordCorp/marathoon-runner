@@ -146,6 +146,18 @@ gpg --verify SHA256SUMS.asc SHA256SUMS          # "Good signature", fingerprint 
 sha256sum -c SHA256SUMS --ignore-missing        # in the folder holding the downloaded files
 ```
 
+## Example pipeline images
+
+The example pipelines of the web app's **Examples** page run public images, so a runner pulls
+them with no login and nothing to build:
+
+| Image | What it does |
+|---|---|
+| `ghcr.io/lordcorp/marathoon-analyzer-simple:1.0` | Simulated analysis, no input file |
+| `ghcr.io/lordcorp/marathoon-analyzer-file:1.0` | Simulated analysis of the input files |
+| `ghcr.io/lordcorp/marathoon-csv-json:1.0` | Converts CSV inputs to JSON, with a report |
+| `ghcr.io/lordcorp/marathoon-sample-report:1.0` | Writes a visual report (charts, table, image) |
+
 ## Troubleshooting
 
 | Symptom | Fix |
